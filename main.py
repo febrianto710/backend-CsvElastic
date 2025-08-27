@@ -67,7 +67,7 @@ def login():
       "nama": user.nama,
       "npp": user.npp,
       "pwv": user.password_version,
-      "exp": datetime.utcnow() + timedelta(hours=2)
+      "exp": datetime.utcnow() + timedelta(minutes=1)
   }
   token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
   session.close()
@@ -102,7 +102,7 @@ def upload_csv():
           
           file.save(filepath)
           data = pd.read_csv(filepath, on_bad_lines='skip')
-          data.to_csv("tmp.csv")
+          # data.to_csv("tmp.csv")
           index_documents(data)
           os.remove(filepath)
           
