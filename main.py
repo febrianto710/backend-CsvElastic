@@ -67,7 +67,7 @@ def login():
       "nama": user.nama,
       "npp": user.npp,
       "pwv": user.password_version,
-      "exp": datetime.utcnow() + timedelta(minutes=1)
+      "exp": datetime.utcnow() + timedelta(hours=2)
   }
   token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
   session.close()
