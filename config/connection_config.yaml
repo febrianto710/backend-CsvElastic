@@ -1,3 +1,6 @@
 elk:
   url: "http://elastic:admin123@localhost:9200/"
   index_destination: "test-upload-csv"
+
+db:
+  url: mysql+pymysql://root:admin123@localhost/csv_elastic

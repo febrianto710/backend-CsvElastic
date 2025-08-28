@@ -10,10 +10,10 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from utils.index_documents import index_documents
 from functools import wraps
-
+from config.settings import DATABASE_URL
 # Konfigurasi
 app = Flask(__name__)
-DATABASE_URL = "mysql+pymysql://root:admin123@localhost/auth_db"
+# DATABASE_URL = "mysql+pymysql://root:admin123@localhost/auth_db"
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 CORS(app)
@@ -147,5 +147,5 @@ def upload_csv():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=5000)
     # app.run(debug=True)

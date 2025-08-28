@@ -1,1 +1,3 @@
 ! Harus ada folder uploads dan databasenya harus sudah dibuat
+
+! 
