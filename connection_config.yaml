@@ -1,7 +1,0 @@
-elkhub:
-  index-destination: "query-performance-bnidirect"
-  testing-destination: "dev-query-bulkmonitoring-bnidirect"
-
-elk_local:
-  url: "http://elastic:admin123@localhost:9200/"
-  index_destination: "test-upload-csv*"

@@ -8,9 +8,8 @@ import bcrypt
 import os
 from werkzeug.utils import secure_filename
 import pandas as pd
-import io
-from index_documents import index_documents
-
+from utils.index_documents import index_documents
+from functools import wraps
 
 # Konfigurasi
 app = Flask(__name__)
@@ -27,19 +26,46 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    nama = Column(String(100), nullable=False)
+    name = Column(String(100), nullable=False)
     npp = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     password_version = Column(Integer, default=1)
     
-# Model User
-class UploadHistory(Base):
-    __tablename__ = "upload_history"
-    id = Column(Integer, primary_key=True, index=True)
-    nama = Column(String(100), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+# # Model Upload History
+# class UploadHistory(Base):
+#     __tablename__ = "upload_history"
+#     id = Column(Integer, primary_key=True, index=True)
+#     nama = Column(String(100), nullable=False)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 Base.metadata.create_all(bind=engine)
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # Ambil token dari header Authorization
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+
+        if not token:
+            return jsonify({"message": "Token tidak ditemukan"}), 401
+
+        try:
+            # Decode JWT
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            request.user = data  # Simpan data token ke request context
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token sudah kadaluarsa"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Token tidak valid"}), 401
+
+        return f(*args, **kwargs)
+    return decorated
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -64,7 +90,7 @@ def login():
 
   # Buat JWT Token
   payload = {
-      "nama": user.nama,
+      "name": user.name,
       "npp": user.npp,
       "pwv": user.password_version,
       "exp": datetime.utcnow() + timedelta(hours=2)
@@ -86,10 +112,12 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/upload-csv', methods=['POST'])
+@token_required
 def upload_csv():
-    if 'file' not in request.files:
-        return jsonify({"error": "file belum di upload"}), 400
 
+    if 'file' not in request.files:
+        return jsonify({"error": "File belum di upload"}), 400
+    
     file = request.files['file']
 
     if file.filename == '':
@@ -103,8 +131,11 @@ def upload_csv():
           file.save(filepath)
           data = pd.read_csv(filepath, on_bad_lines='skip')
           # data.to_csv("tmp.csv")
-          index_documents(data)
+          result = index_documents(data)
           os.remove(filepath)
+          
+          if result != True:
+            return jsonify({"error": result}), 400
           
           return jsonify({"message": "Data berhasil dikirim ke Elastic"}), 200
         except Exception as error:
@@ -116,5 +147,5 @@ def upload_csv():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    # app.run()
+    app.run()
+    # app.run(debug=True)

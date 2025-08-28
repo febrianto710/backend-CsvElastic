@@ -1,4 +1,4 @@
-from settings import es, DEST_INDEX
+from config.settings import es, DEST_INDEX
 
 from elasticsearch.helpers import bulk  # Import bulk helper
 import pandas as pd
@@ -22,16 +22,19 @@ def index_documents(merged_data):
         # Execute bulk operation
         success, errors = bulk(es, actions, raise_on_error=False, stats_only=False)
 
-        print(f"[INDEX] Successfully indexed {success} documents to {DEST_INDEX}")
-
+        # print(f"[INDEX] Successfully indexed {success} documents to {DEST_INDEX}")
+        
         if errors:
-            print(f"[INDEX] {len(errors)} documents failed to index")
-            for err in errors[:5]:  # Log only first 5 errors for debugging
-                print(f"Failed document: {err}")
+            # print(f"[INDEX] {len(errors)} documents failed to index")
+            # for err in errors[:5]:  # Log only first 5 errors for debugging
+            #     print(f"Failed document: {err}")
+            return f"{len(errors)} documents failed to index"
+        else:
+            return True
 
     except Exception as e:
-        print(f"[ERROR] Failed to index documents: {e}", exc_info=True)
-        
-
-    finally:
-        print("finish")
+        # print(f"[ERROR] Failed to index documents: {e}", exc_info=True)
+        return f"Failed to index documents: {e}"
+    
+    # finally:
+    #     print("finish")
