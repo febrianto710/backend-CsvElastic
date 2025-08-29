@@ -10,15 +10,24 @@ def index_documents(merged_data):
         merged_data = merged_data.replace({np.nan: None})
 
         # Prepare bulk indexing actions
-        actions = [
-            {
-                "_index": DEST_INDEX,
-                # "_id": row["tranid"],
-                "_source": row.to_dict()
-            }
-            for _, row in merged_data.iterrows()
-        ]
-
+        if "tranid" in merged_data.columns:
+            actions = [
+                {
+                    "_index": DEST_INDEX,
+                    "_id": row["tranid"],
+                    "_source": row.to_dict()
+                }
+                for _, row in merged_data.iterrows()
+            ]
+        else:
+            actions = [
+                {
+                    "_index": DEST_INDEX,
+                    # "_id": row["tranid"],
+                    "_source": row.to_dict()
+                }
+                for _, row in merged_data.iterrows()
+            ]
         # Execute bulk operation
         success, errors = bulk(es, actions, raise_on_error=False, stats_only=False)
 
