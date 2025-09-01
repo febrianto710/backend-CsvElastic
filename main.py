@@ -10,7 +10,10 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from utils.index_documents import index_documents
 from functools import wraps
-from config.settings import DATABASE_URL
+from config.settings import DATABASE_URL, DEST_INDEX, IndexType
+
+
+
 # Konfigurasi
 app = Flask(__name__)
 # DATABASE_URL = "mysql+pymysql://root:admin123@localhost/auth_db"
@@ -114,7 +117,10 @@ def allowed_file(filename):
 @app.route('/upload-csv', methods=['POST'])
 @token_required
 def upload_csv():
-
+    index_type = request.form.get('index_type')
+    if not index_type:
+        return jsonify({"error": "index type attribute tidak ada"}), 400
+        
     if 'file' not in request.files:
         return jsonify({"error": "File belum di upload"}), 400
     
@@ -125,21 +131,42 @@ def upload_csv():
 
     if file and allowed_file(file.filename):
         try:
-          filename = secure_filename(file.filename)
-          filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            print(filepath)
+            file.save(filepath)
+            out_filename = "output.csv"
+            # menghapus kutip di awal dan akhir 
+            with open(f'{filepath}', 'r') as f_in, open(out_filename, 'w') as f_out:
+                for line in f_in:
+                    # hapus tanda kutip " di awal dan akhir baris, dan hapus juga newline di akhir
+                    cleaned_line = line.strip()
+                    if cleaned_line.startswith('"') and cleaned_line.endswith('"'):
+                        cleaned_line = cleaned_line[1:-1]
+                    f_out.write(cleaned_line + '\n')
+                    
+            data = pd.read_csv(out_filename, on_bad_lines='skip')
+            # df.to_csv("tmp.csv")
+            print(index_type)
+            if index_type == IndexType.EMPLOYEE.value:
+                
+                
+                result = index_documents(data, DEST_INDEX["employee"])
+            else:
+                
+                result = index_documents(data, DEST_INDEX["test"])
+                
+            # result = index_documents(data)
+            os.remove(filepath)
+            os.remove(out_filename)
+            
+            if result != True:
+                return jsonify({"error": result}), 400
           
-          file.save(filepath)
-          data = pd.read_csv(filepath, on_bad_lines='skip')
-          # data.to_csv("tmp.csv")
-          result = index_documents(data)
-          os.remove(filepath)
-          
-          if result != True:
-            return jsonify({"error": result}), 400
-          
-          return jsonify({"message": "Data berhasil dikirim ke Elastic"}), 200
+            return jsonify({"message": "Data berhasil dikirim ke Elastic"}), 200
         except Exception as error:
-          return jsonify({"error": error.message}), 500
+            print(error)
+            return jsonify({"error": f"Terjadi error: {error}"}), 500
                 
     else:
         return jsonify({"error": "Format file harus CSV"}), 400
@@ -147,5 +174,5 @@ def upload_csv():
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(port=5000, debug=True)
     # app.run(debug=True)

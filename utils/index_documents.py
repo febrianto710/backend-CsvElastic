@@ -1,10 +1,10 @@
-from config.settings import es, DEST_INDEX
+from config.settings import es
 
 from elasticsearch.helpers import bulk  # Import bulk helper
 import pandas as pd
 import numpy as np
 
-def index_documents(merged_data):
+def index_documents(merged_data, index_name):
     try:
         # Convert NaN to None to avoid Elasticsearch JSON parsing errors
         merged_data = merged_data.replace({np.nan: None})
@@ -13,7 +13,7 @@ def index_documents(merged_data):
         if "tranid" in merged_data.columns:
             actions = [
                 {
-                    "_index": DEST_INDEX,
+                    "_index": index_name,
                     "_id": row["tranid"],
                     "_source": row.to_dict()
                 }
@@ -22,7 +22,7 @@ def index_documents(merged_data):
         else:
             actions = [
                 {
-                    "_index": DEST_INDEX,
+                    "_index": index_name,
                     # "_id": row["tranid"],
                     "_source": row.to_dict()
                 }

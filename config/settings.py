@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 import yaml
+from enum import Enum
 
 base_path = '.'
 
@@ -21,3 +22,8 @@ es = Elasticsearch(
 # Indices
 DEST_INDEX = elk_config["elk"]["index_destination"]
 DATABASE_URL = elk_config["db"]["url"]
+
+
+class IndexType(Enum):
+    EMPLOYEE = "employee"
+    TEST = "test"
