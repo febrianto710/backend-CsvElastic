@@ -1,6 +1,4 @@
 from flask import Flask, request, jsonify
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, func
-from sqlalchemy.orm import sessionmaker, declarative_base
 import jwt
 from datetime import datetime, timedelta
 from flask_cors import CORS
@@ -10,9 +8,9 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from utils.index_documents import index_documents
 from functools import wraps
-from config.settings import DATABASE_URL, DEST_INDEX, IndexType
-
-
+from config.settings import  DEST_INDEX, IndexType
+from database import engine, Base, get_db
+from models.User import User
 
 # Konfigurasi
 app = Flask(__name__)
@@ -20,26 +18,6 @@ app = Flask(__name__)
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 CORS(app)
-# ORM setup
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine)
-Base = declarative_base()
-
-# Model User
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    npp = Column(String(50), unique=True, nullable=False)
-    password = Column(String(255), nullable=False)
-    password_version = Column(Integer, default=1)
-    
-# # Model Upload History
-# class UploadHistory(Base):
-#     __tablename__ = "upload_history"
-#     id = Column(Integer, primary_key=True, index=True)
-#     nama = Column(String(100), nullable=False)
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 Base.metadata.create_all(bind=engine)
 
@@ -79,16 +57,16 @@ def login():
   if not npp or not password:
     return jsonify({"error": "npp dan password wajib diisi"}), 400
   
-  session = SessionLocal()
-  user = session.query(User).filter_by(npp=npp).first()
+  db = get_db()
+  user = db.query(User).filter_by(npp=npp).first()
 
   if not user:
-      session.close()
+      db.close()
       return jsonify({"error": "NPP atau password salah"}), 400
 
   # Verifikasi password
   if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-    session.close()
+    db.close()
     return jsonify({"error": "NPP atau password salah"}), 400
 
   # Buat JWT Token
@@ -99,7 +77,7 @@ def login():
       "exp": datetime.utcnow() + timedelta(hours=2)
   }
   token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-  session.close()
+  db.close()
 
   return jsonify({"token": token}), 200
 
@@ -145,15 +123,12 @@ def upload_csv():
                         cleaned_line = cleaned_line[1:-1]
                     f_out.write(cleaned_line + '\n')
                     
-            data = pd.read_csv(out_filename, on_bad_lines='skip')
+            data = pd.read_csv(out_filename, on_bad_lines='skip', low_memory=False)
             # df.to_csv("tmp.csv")
             print(index_type)
-            if index_type == IndexType.EMPLOYEE.value:
-                
-                
+            if index_type == IndexType.EMPLOYEE.value:             
                 result = index_documents(data, DEST_INDEX["employee"])
-            else:
-                
+            else:               
                 result = index_documents(data, DEST_INDEX["test"])
                 
             # result = index_documents(data)
