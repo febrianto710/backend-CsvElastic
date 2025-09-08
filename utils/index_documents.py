@@ -10,11 +10,11 @@ def index_documents(merged_data, index_name):
         merged_data = merged_data.replace({np.nan: None})
 
         # Prepare bulk indexing actions
-        if "tranid" in merged_data.columns:
+        if "NPP" in merged_data.columns:
             actions = [
                 {
                     "_index": index_name,
-                    "_id": row["tranid"],
+                    "_id": row["NPP"],
                     "_source": row.to_dict()
                 }
                 for _, row in merged_data.iterrows()
