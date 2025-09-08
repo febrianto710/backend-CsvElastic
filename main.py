@@ -149,5 +149,5 @@ def upload_csv():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5000)
     # app.run(debug=True)
