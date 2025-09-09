@@ -1,6 +1,5 @@
-from database import Base, engine, get_db
+from database.connection import Base, engine, get_db
 from models.User import User
-
 
 Base.metadata.create_all(bind=engine)
 

@@ -9,7 +9,7 @@ import pandas as pd
 from utils.index_documents import index_documents
 from functools import wraps
 from config.settings import  DEST_INDEX, IndexType
-from database import engine, Base, get_db
+from database.connection import engine, Base, get_db
 from models.User import User
 
 # Konfigurasi

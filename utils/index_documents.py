@@ -8,9 +8,11 @@ def index_documents(merged_data, index_name):
     try:
         # Convert NaN to None to avoid Elasticsearch JSON parsing errors
         merged_data = merged_data.replace({np.nan: None})
-
+        
+        merged_data.rename(columns=lambda x: "NPP" if x.lower() == "npp" else x, inplace=True)
         # Prepare bulk indexing actions
-        if "NPP" in merged_data.columns:
+        if "NPP" in merged_data.columns.str.upper():
+
             actions = [
                 {
                     "_index": index_name,
@@ -20,6 +22,7 @@ def index_documents(merged_data, index_name):
                 for _, row in merged_data.iterrows()
             ]
         else:
+
             actions = [
                 {
                     "_index": index_name,
