@@ -12,7 +12,7 @@ def index_documents(merged_data, index_name):
         merged_data.rename(columns=lambda x: "NPP" if x.lower() == "npp" else x, inplace=True)
         # Prepare bulk indexing actions
         if "NPP" in merged_data.columns.str.upper():
-
+ 
             actions = [
                 {
                     "_index": index_name,

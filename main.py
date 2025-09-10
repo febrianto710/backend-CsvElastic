@@ -111,7 +111,7 @@ def upload_csv():
         try:
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            print(filepath)
+            # print(filepath)
             file.save(filepath)
             out_filename = "output.csv"
             # menghapus kutip di awal dan akhir 
@@ -125,7 +125,7 @@ def upload_csv():
                     
             data = pd.read_csv(out_filename, on_bad_lines='skip', low_memory=False)
             # df.to_csv("tmp.csv")
-            print(index_type)
+            # print(index_type)
             if index_type == IndexType.EMPLOYEE.value:             
                 result = index_documents(data, DEST_INDEX["employee"])
             else:               
@@ -149,5 +149,5 @@ def upload_csv():
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(host="127.0.0.1", port=5000)
     # app.run(debug=True)
