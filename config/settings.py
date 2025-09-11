@@ -26,4 +26,4 @@ DATABASE_URL = elk_config["db"]["url"]
 
 class IndexType(Enum):
     EMPLOYEE = "employee"
-    TEST = "test"
+    WEB_PORTAL = "web portal"

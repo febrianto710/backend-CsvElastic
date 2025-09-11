@@ -2,7 +2,7 @@ elk:
   url: "http://elastic:admin123@localhost:9200/"
   index_destination:
     employee: "employee-csv"
-    test: "test-upload-csv"
+    web_portal: "web-portal-csv"
 
 db:
   url: sqlite:///csv_elastic.sqlite

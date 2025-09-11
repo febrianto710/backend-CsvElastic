@@ -128,9 +128,12 @@ def upload_csv():
             # print(index_type)
             if index_type == IndexType.EMPLOYEE.value:             
                 result = index_documents(data, DEST_INDEX["employee"])
-            else:               
-                result = index_documents(data, DEST_INDEX["test"])
-                
+            elif index_type == IndexType.WEB_PORTAL.value:               
+                result = index_documents(data, DEST_INDEX["web_portal"])
+            else:
+                os.remove(filepath)
+                os.remove(out_filename)
+                return jsonify({"message": "Pilihan Tidak Tersedia"}), 400   
             # result = index_documents(data)
             os.remove(filepath)
             os.remove(out_filename)
