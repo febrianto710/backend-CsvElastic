@@ -11,6 +11,8 @@ from functools import wraps
 from config.settings import  DEST_INDEX, IndexType
 from database.connection import engine, Base, get_db
 from models.User import User
+from config.settings import es
+from utils.fetch_documents import fetch_documents
 
 # Konfigurasi
 app = Flask(__name__)
@@ -98,7 +100,8 @@ def upload_csv():
     index_type = request.form.get('index_type')
     if not index_type:
         return jsonify({"error": "index type attribute tidak ada"}), 400
-        
+            
+    # print(data_file)
     if 'file' not in request.files:
         return jsonify({"error": "File belum di upload"}), 400
     
@@ -108,6 +111,7 @@ def upload_csv():
         return jsonify({"error": "Tidak ada file yang dipilih"}), 400
 
     if file and allowed_file(file.filename):
+        
         try:
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -124,11 +128,51 @@ def upload_csv():
                     f_out.write(cleaned_line + '\n')
                     
             data = pd.read_csv(out_filename, on_bad_lines='skip', low_memory=False)
-            # df.to_csv("tmp.csv")
-            # print(index_type)
+
             if index_type == IndexType.EMPLOYEE.value:             
                 result = index_documents(data, DEST_INDEX["employee"])
-            elif index_type == IndexType.WEB_PORTAL.value:               
+            elif index_type == IndexType.WEB_PORTAL.value:  
+                data["NPP"] = data["USERNAME"].str[-5:]    
+                data["CHANNEL_NAME"] = "WEB_PORTAL"
+                data["TRX_ID"] = data.apply(
+                    lambda row: f"{row['TANGGAL']} || {row['CHANNEL_NAME']} || {row['NPP']}", 
+                    axis=1
+                )
+                data["@timestamp"] = data.apply(lambda row: f'{row["TANGGAL"]}+07:00', axis=1)
+
+                data["@timestamp"] = pd.to_datetime(data["@timestamp"], format="%d-%m-%Y %H:%M:%S%z")
+                data["TANGGAL"] = data["@timestamp"]
+                data["CHANNEL_ID"] = data["NPP"]
+                data["SERVICE"] = "WEB PORTAL"
+                data["NOMINAL"] = 1000
+                    
+                query = {
+                    "query": {
+                        "match_all": {}
+                    }
+                }
+                
+                merged_data = []
+                
+                for batch in fetch_documents(query, DEST_INDEX["employee"]):
+                    for doc in batch:
+                        source_data = doc["_source"]
+                        merged_data.append(source_data)
+                        
+                df_employee_data = pd.DataFrame(merged_data)
+                
+
+                for index, row in data.iterrows():
+                    # cari data di kolom npp yang mengandung '553'
+                    filtered = df_employee_data[df_employee_data["NPP"].str.contains(row["NPP"], na=False)]
+                    if not filtered.empty:
+                        
+                        employee = filtered.iloc[0]
+                        data.at[index, "UNIT"] = employee["UNIT3"] 
+                        # print(row["UNIT"])
+                        
+                # data.to_csv("xx.csv")
+                data = data.drop(columns=["NPP", "NO"])         
                 result = index_documents(data, DEST_INDEX["web_portal"])
             else:
                 os.remove(filepath)

@@ -10,10 +10,11 @@ def index_documents(merged_data, index_name):
         merged_data = merged_data.replace({np.nan: None})
         
         # Ubah semua nama kolom jadi uppercase
-        merged_data.columns = merged_data.columns.str.upper()
+        # merged_data.columns = merged_data.columns.str.upper()
         # Prepare bulk indexing actions
         if index_name == DEST_INDEX["employee"]:
- 
+            merged_data.rename(columns=lambda x: "NPP" if x.lower() == "npp" else x, inplace=True)
+            
             actions = [
                 {
                     "_index": index_name,
@@ -24,12 +25,12 @@ def index_documents(merged_data, index_name):
             ]
         elif index_name == DEST_INDEX["web_portal"]:
             # Gabungkan kolom
-            merged_data["tranid"] = merged_data["TANGGAL"].astype(str) + "_" + merged_data["USERNAME"].astype(str) + "_" + merged_data["NIK"].astype(str)
+            # merged_data["tranid"] = merged_data["TANGGAL"].astype(str) + "_" + merged_data["USERNAME"].astype(str) + "_" + merged_data["NIK"].astype(str)
             
             actions = [
                 {
                     "_index": index_name,
-                    "_id": row["tranid"],
+                    "_id": row["TRX_ID"],
                     "_source": row.to_dict()
                 }
                 for _, row in merged_data.iterrows()

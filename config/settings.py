@@ -24,6 +24,10 @@ DEST_INDEX = elk_config["elk"]["index_destination"]
 DATABASE_URL = elk_config["db"]["url"]
 
 
+SCROLL_TIME = "2m"
+BATCH_SIZE = 10000
+
+
 class IndexType(Enum):
     EMPLOYEE = "employee"
     WEB_PORTAL = "web portal"
