@@ -125,22 +125,30 @@ def upload_csv():
                     cleaned_line = line.strip()
                     if cleaned_line.startswith('"') and cleaned_line.endswith('"'):
                         cleaned_line = cleaned_line[1:-1]
+                        
+                    # hapus semua karakter '
+                    cleaned_line = cleaned_line.replace("'", "")
+                    # cleaned_line = cleaned_line.replace("/", "-")
+                    
                     f_out.write(cleaned_line + '\n')
                     
-            data = pd.read_csv(out_filename, on_bad_lines='skip', low_memory=False)
-
+            data = pd.read_csv(out_filename, on_bad_lines='skip', sep=None, engine="python")
+           
             if index_type == IndexType.EMPLOYEE.value:             
                 result = index_documents(data, DEST_INDEX["employee"])
             elif index_type == IndexType.WEB_PORTAL.value:  
+                data["NIK"] = data["NIK"].astype(str)
                 data["NPP"] = data["USERNAME"].str[-5:]    
                 data["CHANNEL_NAME"] = "WEB_PORTAL"
                 data["TRX_ID"] = data.apply(
-                    lambda row: f"{row['TANGGAL']} || {row['CHANNEL_NAME']} || {row['NPP']}", 
+                    lambda row: f"{row['TANGGAL']}{row['CHANNEL_NAME']}{row['NPP']}{row['NIK']}", 
                     axis=1
                 )
                 data["@timestamp"] = data.apply(lambda row: f'{row["TANGGAL"]}+07:00', axis=1)
 
-                data["@timestamp"] = pd.to_datetime(data["@timestamp"], format="%d-%m-%Y %H:%M:%S%z")
+                data["@timestamp"] = pd.to_datetime(data["@timestamp"], format='mixed',
+                    dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
+                    errors='coerce')
                 data["TANGGAL"] = data["@timestamp"]
                 data["CHANNEL_ID"] = data["NPP"]
                 data["SERVICE"] = "WEB PORTAL"
@@ -170,9 +178,11 @@ def upload_csv():
                         employee = filtered.iloc[0]
                         data.at[index, "UNIT"] = employee["UNIT3"] 
                         # print(row["UNIT"])
-                        
+                    else:
+                        data.at[index, "UNIT"] = "-"    
                 # data.to_csv("xx.csv")
-                data = data.drop(columns=["NPP", "NO"])         
+                data = data.drop(columns=["NPP", "NO"])
+                         
                 result = index_documents(data, DEST_INDEX["web_portal"])
             else:
                 os.remove(filepath)
