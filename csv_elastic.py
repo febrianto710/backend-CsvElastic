@@ -189,21 +189,35 @@ def upload_csv():
                         
                 df_employee_data = pd.DataFrame(merged_data)
                 
+                df_employee_data["NPP"] = df_employee_data["NPP"].str[-5:]
 
-                for index, row in data.iterrows():
-                    # cari data di kolom npp yang mengandung '553'
-                    filtered = df_employee_data[df_employee_data["NPP"].str.contains(row["NPP"], na=False)]
-                    if not filtered.empty:
+                # for index, row in data.iterrows():
+                #     # cari data di kolom npp yang mengandung '553'
+                #     filtered = df_employee_data[df_employee_data["NPP"].str.contains(row["NPP"], na=False)]
+                #     if not filtered.empty:
                         
-                        employee = filtered.iloc[0]
-                        data.at[index, "UNIT"] = employee["UNIT3"] 
-                        # print(row["UNIT"])
-                    else:
-                        data.at[index, "UNIT"] = "-"    
+                #         employee = filtered.iloc[0]
+                #         data.at[index, "UNIT"] = employee["UNIT3"] 
+                #         # print(row["UNIT"])
+                #     else:
+                #         data.at[index, "UNIT"] = "-" 
+                # join data dengan df_employee_data berdasarkan kolom NPP
+                merged = data.merge(
+                    df_employee_data[["NPP", "UNIT3"]],
+                    on="NPP",
+                    how="left"
+                )
+                # merged.to_csv("merged.csv")
+
+                # isi kolom UNIT, default "-" kalau tidak ada match
+                merged["UNIT"] = merged["UNIT3"].fillna("-")
+
+                # drop UNIT3 kalau tidak perlu
+                merged = merged.drop(columns=["UNIT3", "NPP", "NO"])   
                 # data.to_csv("xx.csv")
-                data = data.drop(columns=["NPP", "NO"])
+                # data = data.drop(columns=["NPP", "NO"])
                             
-                result = index_documents(data, DEST_INDEX["web_portal"])
+                result = index_documents(merged, DEST_INDEX["web_portal"])
             else:
                 os.remove(filepath)
                 os.remove(out_filename)
