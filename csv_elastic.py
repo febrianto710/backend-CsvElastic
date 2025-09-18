@@ -101,7 +101,16 @@ def upload_csv():
         data = pd.DataFrame(data)
         # data = df.dropna()
         # data.to_csv(f"xx.csv")
-        if index_type == IndexType.EMPLOYEE.value:             
+        if index_type == IndexType.EMPLOYEE.value: 
+            data["AS_OF_DATE"] = pd.to_datetime(data["AS_OF_DATE"], format='mixed',
+                dayfirst=True,           
+                errors='coerce')   
+            data["TGL_LAHIR"] = pd.to_datetime(data["TGL_LAHIR"], format='mixed',
+                dayfirst=True,           
+                errors='coerce')    
+            data["TGL_MASUK"] = pd.to_datetime(data["TGL_MASUK"], format='mixed',
+                dayfirst=True,           
+                errors='coerce')       
             result = index_documents(data, DEST_INDEX["employee"])
         elif index_type == IndexType.QUOTA_DUKCAPIL.value:  
             data["TRX_ID"] = data["tanggal"] + "_" + data["UNIT"] 
