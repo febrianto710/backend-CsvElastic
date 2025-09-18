@@ -8,12 +8,13 @@ def index_documents(merged_data, index_name):
     try:
         # Convert NaN to None to avoid Elasticsearch JSON parsing errors
         merged_data = merged_data.replace({np.nan: None})
+        merged_data.rename(columns=lambda x: "@timestamp" if x.lower() == "@timestamp" else x, inplace=True)
         
         # Ubah semua nama kolom jadi uppercase
         # merged_data.columns = merged_data.columns.str.upper()
         # Prepare bulk indexing actions
         if index_name == DEST_INDEX["employee"]:
-            merged_data.rename(columns=lambda x: "NPP" if x.lower() == "npp" else x, inplace=True)
+            # merged_data.rename(columns=lambda x: "NPP" if x.lower() == "npp" else x, inplace=True)
             
             actions = [
                 {
