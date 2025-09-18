@@ -35,6 +35,18 @@ def index_documents(merged_data, index_name):
                 }
                 for _, row in merged_data.iterrows()
             ]
+        elif index_name == DEST_INDEX["quota_dukcapil"]:
+            # Gabungkan kolom
+            # merged_data["TRX_ID"] = merged_data["tanggal"].astype(str) + "_" + merged_data["UNIT"]
+            
+            actions = [
+                {
+                    "_index": index_name,
+                    "_id": row["TRX_ID"],
+                    "_source": row.to_dict()
+                }
+                for _, row in merged_data.iterrows()
+            ]
         else: 
             return "Pilihan Tidak Tersedia"
         # Execute bulk operation

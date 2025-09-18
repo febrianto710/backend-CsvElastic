@@ -31,3 +31,4 @@ BATCH_SIZE = 10000
 class IndexType(Enum):
     EMPLOYEE = "employee"
     WEB_PORTAL = "web portal"
+    QUOTA_DUKCAPIL = "quota dukcapil"

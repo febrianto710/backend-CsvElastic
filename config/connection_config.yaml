@@ -3,6 +3,7 @@ elk:
   index_destination:
     employee: "dev-master-pegawai-dukcapil"
     web_portal: "dev-query-dukcapil"
+    quota_dukcapil: "dev-master-quota-dukcapil"
 
 db:
   url: sqlite:///csv_elastic.sqlite

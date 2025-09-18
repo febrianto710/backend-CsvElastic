@@ -103,6 +103,12 @@ def upload_csv():
         # data.to_csv(f"xx.csv")
         if index_type == IndexType.EMPLOYEE.value:             
             result = index_documents(data, DEST_INDEX["employee"])
+        elif index_type == IndexType.QUOTA_DUKCAPIL.value:  
+            data["TRX_ID"] = data["tanggal"] + "_" + data["UNIT"] 
+            data["tanggal"] = pd.to_datetime(data["tanggal"], format='mixed',
+                dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
+                errors='coerce')        
+            result = index_documents(data, DEST_INDEX["quota_dukcapil"])
         elif index_type == IndexType.WEB_PORTAL.value:  
             data["NIK"] = data.apply(
                 lambda row: f"{row["NIK"]}", 
