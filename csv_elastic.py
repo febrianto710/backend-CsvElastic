@@ -109,7 +109,8 @@ def upload_csv():
         return jsonify({"error": "Tidak ada file yang dipilih"}), 400
 
     if file and allowed_file(file.filename):
-        
+        filepath = "default.csv"
+        out_filename = "default.csv"
         try:
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -132,8 +133,7 @@ def upload_csv():
   
           
             data = pd.read_csv(out_filename, on_bad_lines='skip', sep=None, engine="python")
-            # data = df.dropna()
-            # data.to_csv(f"xx.csv")
+
             data.columns = data.columns.str.upper()
             
             if index_type == IndexType.EMPLOYEE.value: 
@@ -191,17 +191,6 @@ def upload_csv():
                 
                 df_employee_data["NPP"] = df_employee_data["NPP"].str[-5:]
 
-                # for index, row in data.iterrows():
-                #     # cari data di kolom npp yang mengandung '553'
-                #     filtered = df_employee_data[df_employee_data["NPP"].str.contains(row["NPP"], na=False)]
-                #     if not filtered.empty:
-                        
-                #         employee = filtered.iloc[0]
-                #         data.at[index, "UNIT"] = employee["UNIT3"] 
-                #         # print(row["UNIT"])
-                #     else:
-                #         data.at[index, "UNIT"] = "-" 
-                # join data dengan df_employee_data berdasarkan kolom NPP
                 merged = data.merge(
                     df_employee_data[["NPP", "UNIT3"]],
                     on="NPP",
@@ -212,10 +201,7 @@ def upload_csv():
                 # isi kolom UNIT, default "-" kalau tidak ada match
                 merged["UNIT"] = merged["UNIT3"].fillna("-")
 
-                # drop UNIT3 kalau tidak perlu
                 merged = merged.drop(columns=["UNIT3", "NPP", "NO"])   
-                # data.to_csv("xx.csv")
-                # data = data.drop(columns=["NPP", "NO"])
                             
                 result = index_documents(merged, DEST_INDEX["web_portal"])
             else:
@@ -231,6 +217,12 @@ def upload_csv():
             
             return jsonify({"message": "Data berhasil dikirim ke Elastic"}), 200
         except Exception as error:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                
+            if os.path.exists(out_filename):
+                os.remove(out_filename)
+                
             print("error---------")
             print(error)
             return jsonify({"error": f"Terjadi error: {error}"}), 500
