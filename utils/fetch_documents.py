@@ -46,6 +46,6 @@ def fetch_documents(query, source_index):
     finally:
         if scroll_id:
             es.clear_scroll(scroll_id=scroll_id)
-            print("Cleared scroll ID.")
+            # print("Cleared scroll ID.")
 
 

@@ -27,8 +27,15 @@ DATABASE_URL = elk_config["db"]["url"]
 SCROLL_TIME = "2m"
 BATCH_SIZE = 10000
 
+SECRET_KEY = "supersecretkey"
+ALGORITHM = "HS256"
+
+UPLOAD_FOLDER = "uploads"
+ALLOWED_EXTENSIONS = {"csv"}
 
 class IndexType(Enum):
     EMPLOYEE = "employee"
     WEB_PORTAL = "web portal"
     QUOTA_DUKCAPIL = "quota dukcapil"
+
+API_VERSION = "v1"
