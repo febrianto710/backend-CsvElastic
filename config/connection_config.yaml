@@ -7,3 +7,5 @@ elk:
 
 db:
   url: sqlite:///csv_elastic.sqlite
+
+elastic_url_auth: http://localhost:9200/_security/_authenticate

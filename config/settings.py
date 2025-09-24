@@ -33,6 +33,8 @@ ALGORITHM = "HS256"
 UPLOAD_FOLDER = "uploads"
 ALLOWED_EXTENSIONS = {"csv"}
 
+ELASTIC_URL_AUTH = elk_config["elastic_url_auth"]
+
 class IndexType(Enum):
     EMPLOYEE = "employee"
     WEB_PORTAL = "web portal"
