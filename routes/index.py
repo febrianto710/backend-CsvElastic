@@ -128,7 +128,7 @@ def upload_csv():
                 # isi kolom UNIT, default "-" kalau tidak ada match
                 merged["UNIT"] = merged["UNIT3"].fillna("-")
 
-                merged = merged.drop(columns=["UNIT3", "NPP", "NO"])   
+                merged = merged.drop(columns=["UNIT3", "NPP", "NO"], errors="ignore")   
                             
                 result = index_documents(merged, DEST_INDEX["web_portal"])
             else:
