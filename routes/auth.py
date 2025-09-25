@@ -18,11 +18,12 @@ def login():
   password = data.get("password")
   
   if not username or not password:
-    return jsonify({"error": "npp dan password wajib diisi"}), 400
+    return jsonify({"error": "username dan password wajib diisi"}), 400
   
   response = requests.get(
       ELASTIC_URL_AUTH,
-      auth=HTTPBasicAuth(username, password)
+      auth=HTTPBasicAuth(username, password),
+      verify=False
   )
   
   if response.status_code == 200:
