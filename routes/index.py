@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from utils.index_documents import index_documents
 from functools import wraps
-from config.settings import  DEST_INDEX, IndexType, SECRET_KEY, ALGORITHM, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
+from config.settings import  DEST_INDEX, IndexType, SECRET_KEY, ALGORITHM, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, REQUIRED_COLUMNS
 from database.connection import  get_db
 from models.User import User
 from utils.fetch_documents import fetch_documents
@@ -63,6 +63,12 @@ def upload_csv():
             data.columns = data.columns.str.upper()
             
             if index_type == IndexType.EMPLOYEE.value: 
+                # cari kolom yang hilang
+                missing_cols = list(set(REQUIRED_COLUMNS[IndexType.EMPLOYEE.value]) - set(data.columns))
+                if len(missing_cols) != 0:
+                    print("Kolom yang hilang:", missing_cols)
+                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
+                    
                 data["AS_OF_DATE"] = pd.to_datetime(data["AS_OF_DATE"], format='mixed',
                     dayfirst=True,           
                     errors='coerce')   
@@ -74,6 +80,10 @@ def upload_csv():
                     errors='coerce')       
                 result = index_documents(data, DEST_INDEX["employee"])
             elif index_type == IndexType.QUOTA_DUKCAPIL.value:  
+                missing_cols = list(set(REQUIRED_COLUMNS[IndexType.QUOTA_DUKCAPIL.value]) - set(data.columns))
+                if len(missing_cols) != 0:
+                    print("Kolom yang hilang:", missing_cols)
+                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
                 # format id : SERVICE-UNIT-TANGGAL
                 data["TANGGAL"] = pd.to_datetime(data["TANGGAL"], format='mixed',
                     dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
@@ -84,6 +94,11 @@ def upload_csv():
                 data = data.drop(columns=["TANGGAL_STR"], errors="ignore")     
                 result = index_documents(data, DEST_INDEX["quota_dukcapil"])
             elif index_type == IndexType.WEB_PORTAL.value:  
+                missing_cols = list(set(REQUIRED_COLUMNS[IndexType.WEB_PORTAL.value]) - set(data.columns))
+                if len(missing_cols) != 0:
+                    print("Kolom yang hilang:", missing_cols)
+                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
+                
                 data["NIK"] = data.apply(
                     lambda row: f'{row["NIK"]}', 
                     axis=1
@@ -137,27 +152,32 @@ def upload_csv():
                             
                 result = index_documents(merged, DEST_INDEX["web_portal"])
             else:
-                os.remove(filepath)
-                os.remove(out_filename)
+                # os.remove(filepath)
+                # os.remove(out_filename)
                 return jsonify({"message": "Pilihan Tidak Tersedia"}), 400 
 
-            os.remove(filepath)
-            os.remove(out_filename)
+            # os.remove(filepath)
+            # os.remove(out_filename)
             
             if result != True:
                 return jsonify({"error": result}), 400
             
             return jsonify({"message": "Data berhasil dikirim ke Elastic"}), 200
         except Exception as error:
+            # if os.path.exists(filepath):
+            #     os.remove(filepath)
+                
+            # if os.path.exists(out_filename):
+            #     os.remove(out_filename)
+                
+            print("error---------")
+            print(error)
+            return jsonify({"error": f"Terjadi error: {error}"}), 500
+        finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
                 
             if os.path.exists(out_filename):
                 os.remove(out_filename)
-                
-            print("error---------")
-            print(error)
-            return jsonify({"error": f"Terjadi error: {error}"}), 500
-
     else:
         return jsonify({"error": "Format file harus CSV"}), 400

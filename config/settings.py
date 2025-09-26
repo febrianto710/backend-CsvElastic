@@ -41,3 +41,31 @@ class IndexType(Enum):
     QUOTA_DUKCAPIL = "quota dukcapil"
 
 API_VERSION = "v1"
+
+
+REQUIRED_COLUMNS = {
+  "employee": [
+    "EMP_KATEGORI",
+    "JENJAB",
+    "JNKEL",
+    "JOB",
+    "JOB_ID",
+    "KDUNIT",
+    "KDWIL",
+    "MARITAL_STATUS",
+    "NAMA",
+    "NPP",
+    "ORGANISASI",
+    "ORGANIZATION_ID",
+    "PERSON_ID",
+    "POSISI",
+    "TEMPAT_LAHIR",
+    "TGL_ANGKAT",
+    "TGL_LAHIR",
+    "TGL_MASUK",
+    "UNIT_BESARAN",
+    "UNIT3",
+  ],
+  "web portal": ["IP ADDRESS", "NIK", "STATUS", "TANGGAL", "USERNAME"],
+  "quota dukcapil": ["QUOTA", "SERVICE", "TANGGAL", "UNIT"],
+}
