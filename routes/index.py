@@ -75,10 +75,13 @@ def upload_csv():
                 result = index_documents(data, DEST_INDEX["employee"])
             elif index_type == IndexType.QUOTA_DUKCAPIL.value:  
                 # format id : SERVICE-UNIT-TANGGAL
-                data["TRX_ID"] = data["SERVICE"] + "-" + data["UNIT"] + "-" + data["TANGGAL"]   
                 data["TANGGAL"] = pd.to_datetime(data["TANGGAL"], format='mixed',
                     dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
                     errors='coerce')        
+                # ubah ke string format DD-MM-YYYY HH:mm:ss
+                data["TANGGAL_STR"] = data["TANGGAL"].dt.strftime("%d-%m-%Y %H:%M:%S")
+                data["TRX_ID"] = data["SERVICE"] + "-" + data["UNIT"] + "-" + data["TANGGAL_STR"]
+                data = data.drop(columns=["TANGGAL_STR"], errors="ignore")     
                 result = index_documents(data, DEST_INDEX["quota_dukcapil"])
             elif index_type == IndexType.WEB_PORTAL.value:  
                 data["NIK"] = data.apply(
@@ -87,16 +90,18 @@ def upload_csv():
                 )
                 data["NPP"] = data["USERNAME"].str[-5:]    
                 data["CHANNEL_NAME"] = "WEB_PORTAL"
-                data["TRX_ID"] = data.apply(
-                    lambda row: f"{row['TANGGAL']}{row['CHANNEL_NAME']}{row['NPP']}{row['NIK']}", 
-                    axis=1
-                )
                 data["@TIMESTAMP"] = data.apply(lambda row: f'{row["TANGGAL"]}+07:00', axis=1)
 
                 data["@TIMESTAMP"] = pd.to_datetime(data["@TIMESTAMP"], format='mixed',
                     dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
                     errors='coerce')
                 data["TANGGAL"] = data["@TIMESTAMP"]
+                data["TANGGAL_STR"] = data["TANGGAL"].dt.strftime("%d-%m-%Y %H:%M:%S")
+                data["TRX_ID"] = data.apply(
+                    lambda row: f"{row['TANGGAL_STR']}{row['CHANNEL_NAME']}{row['NPP']}{row['NIK']}", 
+                    axis=1
+                )
+                
                 data["CHANNEL_ID"] = data["NPP"]
                 data["SERVICE"] = "WEB PORTAL"
                 data["NOMINAL"] = 1000
@@ -128,7 +133,7 @@ def upload_csv():
                 # isi kolom UNIT, default "-" kalau tidak ada match
                 merged["UNIT"] = merged["UNIT3"].fillna("-")
 
-                merged = merged.drop(columns=["UNIT3", "NPP", "NO"], errors="ignore")   
+                merged = merged.drop(columns=["UNIT3", "NPP", "NO", "TANGGAL_STR"], errors="ignore")   
                             
                 result = index_documents(merged, DEST_INDEX["web_portal"])
             else:
