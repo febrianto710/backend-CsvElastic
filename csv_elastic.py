@@ -16,5 +16,5 @@ app.register_blueprint(index_routes, url_prefix=f"/api/{API_VERSION}")
 app.register_blueprint(auth_routes, url_prefix=f"/api/{API_VERSION}/auth")
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)
+    app.run(host="127.0.0.1", port=5000, threaded=True)
     # app.run(debug=True)

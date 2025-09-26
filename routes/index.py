@@ -12,6 +12,7 @@ from database.connection import  get_db
 from models.User import User
 from utils.fetch_documents import fetch_documents
 from utils.jwt_handler import token_required
+from utils.generate_radom import generate_code
 
 bp = Blueprint("index", __name__)
 
@@ -40,10 +41,10 @@ def upload_csv():
         out_filename = "default.csv"
         try:
             filename = secure_filename(file.filename)
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            filepath = os.path.join(UPLOAD_FOLDER, f"f_{generate_code()}_{filename}")
             # print(filepath)
             file.save(filepath)
-            out_filename = "output.csv"
+            out_filename = f"output_{generate_code()}.csv"
             # menghapus kutip di awal dan akhir 
             with open(f'{filepath}', 'r') as f_in, open(out_filename, 'w') as f_out:
                 for line in f_in:
