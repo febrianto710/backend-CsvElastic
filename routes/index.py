@@ -68,7 +68,7 @@ def upload_csv():
                 missing_cols = list(set(REQUIRED_COLUMNS[IndexType.EMPLOYEE.value]) - set(data.columns))
                 if len(missing_cols) != 0:
                     print("Kolom yang hilang:", missing_cols)
-                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
+                    return jsonify({"error": f"Required Columns : {' , '.join(missing_cols)}"}), 400 
                     
                 data["AS_OF_DATE"] = pd.to_datetime(data["AS_OF_DATE"], format='mixed',
                     dayfirst=True,           
@@ -84,7 +84,7 @@ def upload_csv():
                 missing_cols = list(set(REQUIRED_COLUMNS[IndexType.QUOTA_DUKCAPIL.value]) - set(data.columns))
                 if len(missing_cols) != 0:
                     print("Kolom yang hilang:", missing_cols)
-                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
+                    return jsonify({"error": f"Required Columns : {' , '.join(missing_cols)}"}), 400 
                 # format id : SERVICE-UNIT-TANGGAL
                 data["TANGGAL"] = pd.to_datetime(data["TANGGAL"], format='mixed',
                     dayfirst=True,           # Kalau tanggal dalam format DD-MM-YYYY
@@ -98,7 +98,7 @@ def upload_csv():
                 missing_cols = list(set(REQUIRED_COLUMNS[IndexType.WEB_PORTAL.value]) - set(data.columns))
                 if len(missing_cols) != 0:
                     print("Kolom yang hilang:", missing_cols)
-                    return jsonify({"error": f"Required Columns : {" , ".join(missing_cols)}"}), 400 
+                    return jsonify({"error": f"Required Columns : {' , '.join(missing_cols)}"}), 400 
                 
                 data["NIK"] = data.apply(
                     lambda row: f'{row["NIK"]}', 
